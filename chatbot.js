@@ -1,3 +1,5 @@
+const WEBHOOK_URL = "https://hook.eu1.make.com/kynppjcki7lx1gx3frnhywtq3g3sfsis";
+
 (function(){
   if (window.__dassChatLoaded) return;
   window.__dassChatLoaded = true;
@@ -115,6 +117,16 @@ a.dlink{color:inherit;text-decoration:underline}
 
   const isPhone = s => /^[0-9 +()-]{7,}$/.test(s);
   const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+async function sendLead(data){
+  if(!WEBHOOK_URL) return;
+  try{
+    await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+  }catch(e){}
+}
 
   function summarize(){
     const d = S.data;
@@ -136,7 +148,8 @@ a.dlink{color:inherit;text-decoration:underline}
     return "Podaj mi typ mebli + wymiary + miasto, a podam orientacyjne widełki.";
   }
 
-  function handle(raw){
+  async function handle(raw){
+
     const text = (raw||"").toString().trim();
     if (!text) return;
 
@@ -200,9 +213,22 @@ a.dlink{color:inherit;text-decoration:underline}
         add("To nie wygląda jak telefon ani email 🙂 Podaj proszę numer (np. +48…) albo email.", "bot");
         return;
       }
-      S.data.contact = text;
-      S.step = "done";
-      add(summarize(), "bot");
+     S.data.contact = text;
+S.step = "done";
+
+await sendLead({
+  type: S.data.type,
+  city: S.data.city,
+  dims: S.data.dims,
+  budget: S.data.budget,
+  timeline: S.data.timeline,
+  contact: S.data.contact,
+  page: location.href,
+  time: new Date().toISOString()
+});
+
+add(summarize(), "bot");
+
       const contactLine =
         PHONE ? `📞 <a class="dlink" href="tel:${PHONE}">${PHONE}</a>` : "";
       const mailLine =
